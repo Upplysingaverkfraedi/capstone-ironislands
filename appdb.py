@@ -12,6 +12,13 @@ driver_choices = pd.read_sql("SELECT name FROM driver", con)['name'].tolist()
 constructor_choices = pd.read_sql("SELECT name FROM constructor", con)['name'].tolist()
 circuit_choices = pd.read_sql("SELECT name FROM circuit", con)['name'].tolist()
 
+# Búa til valmöguleika fyrir framleiðanda flokka
+manufacturer_choices = {
+    "Vélaframleiðandi": "engine_manufacturer_id",
+    "Dekkjaframleiðandi": "tyre_manufacturer_id",
+    "Lið": "constructor_id"
+}
+
 # UI hluti
 app_ui = ui.page_fluid(
     ui.h2("Formula 1 Mælaborð"),
@@ -30,6 +37,12 @@ app_ui = ui.page_fluid(
                 ui.nav_panel(
                     "Hamilton vs Verstappen 2021",
                     ui.output_ui("hamilton_verstappen_plots")
+                ),
+                ui.nav_panel(
+                    "Framleiðenda Frammistaða",
+                    ui.input_select("manufacturer_type", "Veldu Flokk", choices=list(manufacturer_choices.keys())),
+                    output_widget("manufacturer_average_points_plot"),
+                    output_widget("manufacturer_total_points_plot")
                 )
             )
         )
@@ -203,6 +216,61 @@ def server(input, output, session):
         )
 
         return fig
+
+    # Nýir úttakshlutir fyrir framleiðenda frammistöðu
+    @output
+    @render_widget
+    def manufacturer_average_points_plot():
+        if input.manufacturer_type():
+            manufacturer_column = manufacturer_choices[input.manufacturer_type()]
+            # Sækja gögn úr 'race_result' viewinu
+            query = f"""
+                SELECT {manufacturer_column} AS manufacturer_id, points
+                FROM race_result
+            """
+            data = pd.read_sql(query, con)
+            # Hópa eftir framleiðanda og reikna meðaltal stiga
+            average_points = data.groupby('manufacturer_id')['points'].mean().reset_index()
+            # Sækja samanlögð stig til að sía út þá sem hafa minna en 100 stig
+            total_points = data.groupby('manufacturer_id')['points'].sum().reset_index()
+            # Tengja saman meðaltal og samtala
+            merged_data = pd.merge(average_points, total_points, on='manufacturer_id', suffixes=('_mean', '_sum'))
+            # Sía út þá sem hafa samtala stiga minna en 100
+            filtered_data = merged_data[merged_data['points_sum'] >= 100]
+            # Teikna súlurit fyrir meðaltal stiga
+            fig = px.bar(
+                filtered_data.sort_values('points_mean', ascending=False),
+                x='manufacturer_id', y='points_mean',
+                title=f"Meðaltal Stiga eftir {input.manufacturer_type()} (≥100 samtala stiga)"
+            )
+            fig.update_layout(xaxis_title=input.manufacturer_type(), yaxis_title="Meðaltal Stiga")
+            fig.update_xaxes(tickangle=45)
+            return fig
+
+    @output
+    @render_widget
+    def manufacturer_total_points_plot():
+        if input.manufacturer_type():
+            manufacturer_column = manufacturer_choices[input.manufacturer_type()]
+            # Sækja gögn úr 'race_result' viewinu
+            query = f"""
+                SELECT {manufacturer_column} AS manufacturer_id, points
+                FROM race_result
+            """
+            data = pd.read_sql(query, con)
+            # Hópa eftir framleiðanda og reikna samtala stiga
+            total_points = data.groupby('manufacturer_id')['points'].sum().reset_index()
+            # Sía út þá sem hafa samtala stiga minna en 100
+            filtered_data = total_points[total_points['points'] >= 100]
+            # Teikna súlurit fyrir samtala stiga
+            fig = px.bar(
+                filtered_data.sort_values('points', ascending=False),
+                x='manufacturer_id', y='points',
+                title=f"Samtala Stiga eftir {input.manufacturer_type()} (≥100 samtala stiga)"
+            )
+            fig.update_layout(xaxis_title=input.manufacturer_type(), yaxis_title="Samtala Stiga")
+            fig.update_xaxes(tickangle=45)
+            return fig
 
 # Búa til Shiny appið
 app = App(app_ui, server)
