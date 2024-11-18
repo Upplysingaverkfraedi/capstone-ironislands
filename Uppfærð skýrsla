@@ -1,0 +1,151 @@
+<center>
+
+# Capstone verkefni um Formúlu 1 - Upplýsingaverkfræði
+## Iron Islands
+
+</center>
+
+# Samantekt.
+
+
+
+# Inngangur.
+
+Í þessari skýrslu er fjallað um lokaverkefnið "Capstone" sem snýr að greiningu gagna úr Formúlu 1 kappakstursheiminum. 
+Verkefnið beinist að því að byggja upp gagnadrifið mælaborð sem veitir innsýn í einvígi á milli ökumannanna Lewis Hamilton og Max Verstappen á tímabilinu 2021. 
+Með það að markmiði að svara fyrir hvor þeirra er betri kappakstursmaður.
+Með þessu mælaborði er stefnt að því að draga fram upplýsingar sem varpa ljósi á stigakeppni þeirra yfir kappaksturstímabilið 2021, með áherslu á uppsöfnuð stig í hverri keppni.
+
+Markmið skýrslunnar er að útskýra þau skref sem tekin voru í vinnslu verkefnisins, allt frá gagnaöflun og vinnslu yfir í að birta niðurstöður og setja þær í fræðilegt samhengi við námsefni. 
+Í gegnum þetta verkefni nýtum við þá þekkingu sem hefur verið aflað í námskeiðum í upplýsinga- og gagnasafnsfræði, þar á meðal aðferðir við greiningu gagna, gagnasafnsstjórnun og framsetningu upplýsinga.
+
+Áður en áfram er haldið í skýrsluna er vert að athuga að gögnin fyrir þetta verkefni voru fengin með gagnagrunninum [f1db.db](https://github.com/f1db/f1db/releases), 
+frá GitHub aðganginum [F1DB](https://github.com/f1db/f1db), sem er opinn og aðgengilegur GitHub aðgangur sem veitir gagnasöfn fyrir Formúlu 1 keppnir. 
+Þessi gögn eru dreifð undir [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/) leyfinu. 
+
+# Lýsing á gagnaöflun.
+
+Við öflun gagna fyrir verkefnið nýttum við okkur opinberan gagnagrunninn f1db.db, áskorunarlaust, af GitHub aðganginum F1DB. 
+Gagnagrunnurinn er aðgengilegur á GitHub undir notandanafninu F1DB og er opinn og frjáls gagnagrunnur sem inniheldur ítarlegar upplýsingar um Formúlu 1 keppnir, þar á meðal ökumenn, lið, vélar, dekkjaframleiðendur, brautir og keppnir frá upphafi Formúlu 1 árið 1950 til dagsins í dag.
+
+Gagnagrunnurinn er uppfærður reglulega, af Marcelo Overdijk, eftir hverja keppni til að tryggja að nýjustu upplýsingar séu tiltækar. 
+Gögnin eru fáanleg í ýmsum sniðum, þar á meðal CSV, JSON, Smile (óhefðbundin útgáfa af JSON), SQL (MySQL, PostgreSQL eða SQLite ásamt .sql dump skrár) og SQLite gagnagrunnsformi. 
+Ákveðið var að nota SQLite útgáfuna, þar sem hópurinn hafði reynslu af útgáfunni, uppfyllir okkar þarfir og er auðveld í notkun með Python.
+
+Varðandi leyfisskilmála, þá er F1DB dreift undir Creative "Commons Attribution 4.0 International" (CC BY 4.0) leyfi. 
+Þetta tiltekna leyfi býður notendum að deila, afrita og dreifa efninu á hvaða formi sem er; aðlaga, breyta og byggja ofan á efnið, jafnvel í viðskiptalegum tilgangi, að því tilskildu að viðeigandi heiður sé veittur, tengill á leyfið sé gefinn og bent sé á ef breytingar hafi verið gerðar.
+
+Við sóttum SQLite útgáfuna af gagnagrunninum beint af GitHub síðu gagnagrunnsins. 
+Þar sem gögnin eru opin og frjáls til notkunar. 
+Þetta auðveldaði okkur að hefja gagnavinnslu og greiningu án tafar, þó þurftum við að búa til nýjar töflur út frá gagnagrunninum en umjföllun um þær framkvæmdir má finna í næsta kafla "Gagnavinnsla".
+
+# Gagnavinnsla.
+
+## Undirbúningur gagna.
+
+Í upphafi voru gögnin greind og síuð til að draga út aðeins þau gögn sem tengjast Hamilton og Verstappen. Fyrst var unnið með töflurnar í gagnagrunninum til að búa til nýjar sérsniðnar töflur, sem einungis innihalda viðeigandi gögn fyrir keppnistímabilið 2021 og allar keppnir þar sem báðir ökumenn tóku þátt.
+
+Python skráin [`Max-Lewis-table.py`]() var notuð í þessum tilgangi:
+
+**Taflan hamilton_verstappen_race_data_2021:** Þessi tafla var búin til með því að sækja gögn úr race_data töflunni fyrir allar keppnir árið 2021 þar sem bæði Hamilton og Verstappen voru til staðar.
+Gögnin voru síuð þannig að einungis niðurstöður fyrir þessa tvo keppendur voru tekin fyrir.
+
+**Taflan hamilton_verstappen_all_time_data:** Önnur tafla var búin til sem inniheldur allar keppnir þar sem Hamilton og Verstappen tóku þátt yfir allan feril þeirra, óháð keppnisári.
+Til að framkvæma þessar breytingar voru SQL fyrirspurnir notaðar í gegnum Python, með því að tengjast gagnagrunninum með SQLite. 
+Þetta tryggði að gögnin væru einfölduð og aðeins viðeigandi gögn væru meðhöndluð.
+
+## Staðsetningarupplýsingum bætt við gagnagrunninn.
+
+Til að bæta við myndræna framsetningu á mælaborðinu var unnið með gögn um brautirnar þar sem keppnirnar fóru fram. 
+Python skráin [`location.py`]() var notuð til að sækja og tengja staðsetningarhnit (breiddar- og lengdargráður) við hverja braut. 
+Þetta var gert með því að tengjast OpenStreetMap Nominatim API, sem leitar að hnitum miðað við nöfn staða eða brauta.
+
+Ferlið fól í sér:
+
+Að sækja upplýsingar úr töflunni hamilton_verstappen_all_time_data, þar sem brautir og keppnir voru tengdar. 
+Að senda fyrirspurnir til Nominatim API með nöfnum brautanna til að fá hnit.
+Að bæta þessum upplýsingum við nýja töflu sem kallast race_locations, sem inniheldur race_id, grand_prix_id, circuit_id, og staðsetningarhnit (breiddar- og lengdargráður).
+Við notkun API var sérstaklega hugað að reglum OpenStreetMap, og 1 sekúndu töf var bætt við milli fyrirspurna til að forðast að of mikið álag á þjónustuna.
+
+## Hreinsun og umbreyting gagna.
+
+Við hreinsun og umbreytingu gagna voru notaðar ýmsar tækni og aðferðir, þar á meðal:
+
+*SQL síun:* Gögn voru síuð eftir ár, keppendum og stöðu þeirra til að tryggja að þau væru viðeigandi fyrir verkefnið.
+*Python og SQLite:* Gögnin voru meðhöndluð og umbreytt með Python og SQLite, sem gerði kleift að framkvæma flóknar SQL fyrirspurnir og framkvæma beinar breytingar á gagnagrunninum.
+*Regex og textameðhöndlun:* Regex var notað til að fjarlægja eða leiðrétta óþarfa texta í gögnunum þar sem nauðsynlegt var.
+
+## Lokavinnsla og frágangur.
+
+Lokavinnsla verkefnisins fól í sér að nýta öll unnin gögn til að smíða notendavænt og gagnvirkt mælaborð sem veitir innsýn í frammistöðu og einvígi Lewis Hamilton og Max Verstappen í Formúlu 1. 
+Í þessum hluta var smíðuð Python skrá að nafni [`app.py`](), sem byggir á Shiny fyrir Python til að búa til mælaborðið.
+
+Mælaborðið nýtir sér gögn úr sérsniðnum töflum, sem voru gerðar í undirbúningnum,  í gagnagrunninum [`f1db.db`]() og tengir þau við gagnvirka myndræna framsetningu. 
+Meðal lykilatriða í lokavinnslunni voru:
+
+### Uppsetning mælaborðs.
+
+Kóðinn í [`app.py`]() býr til mælaborð með notkun Shiny-viðmóts fyrir Python. 
+Hann inniheldur:
+
+Forsíðu með myndefni sem tengist Hamilton og Verstappen, ásamt Formúlu 1 merki.
+Valmyndir og yfirlit sem gefa notendum möguleika á að velja gögn eftir tímabilum, keppnum eða framleiðendum (vélar, lið og dekk).
+Mismunandi glugga fyrir yfirlit, samanburð tímabila og frammistöðu framleiðenda.
+
+### Gagnvirkni og myndræn framsetning.
+
+Gögnin voru tengd við fjölbreytt myndræn tól, þar á meðal:
+
+Línurit fyrir uppsöfnuð stig: Samanburður á stigum Hamiltons og Verstappens yfir tímabilið 2021.
+Kortlagning frammistöðu: Með staðsetningarupplýsingum úr töflunni race_locations var búið til gagnvirkt kort sem sýnir meðalstig ökumanna eftir brautum.
+Súlurit fyrir frammistöðu: Samanburður á fjölda sigra, pallastöðum og öðrum þáttum.
+Spider Chart: Útfært til að sýna umfangsmikinn samanburð á frammistöðu yfir allan feril ökumanna.
+Hitakort: Sýnir hraðasta hring ökumanna á mismunandi brautum.
+
+
+### Gagnabreytingar og hreinsanir.
+
+""""REGEX""""
+
+Mælaborðið nýtir sér gögn sem voru hreinsuð og umbreytt í fyrri skrefum. 
+Til viðbótar var:
+
+Notast við gagnahreinsun til að tryggja samræmi í dálkum.
+
+Meðhöndlað gögn eins og hnit, stig og tíma með Python-föllum.
+
+Útbúin gagnvirk valmynd þar sem notendur geta valið keppnir eða flokkað gögnin.
+
+### Samþætting korta.
+
+Kortin voru byggð með notkun Mapbox API og staðsetningargagna úr töflunni race_locations. 
+Þessi hluti tryggði að gögn um staðsetningu voru rétt tengd við viðeigandi upplýsingar um stig.
+
+# Markverðustu niðurstöður.
+
+
+
+# Tengsl við námsefni.
+
+## Stakræn stærðfræði
+
+Reglulegar segðir (regex)
+
+
+
+## SQL (gagnagrunnsvinna)
+
+Í verkefninu notuðum við SQL í til þess að búa til flestallar þær töflur sem notaðar voru í gerð mælaborðsins. Töflurnar voru annaðhvort búnar til útfrá stærri töflum f1db.db eða myndaðar með regex vef-skröpun. Max-Lewis-table.py býr til þær samanburðartöflur sem mynda grunninn að markmiði verkefnisins og inniheldur nær eingöngu SQL skipanir. SQL var líka grunntólið í myndun og lagfæringum á race_data og race-location.
+
+
+## Myndræn framsetning og gagnafrásögn
+
+Helstu gröf og töflur:
+
+Verkefnið notaði helst línurit og stöplarit til að sýna samanburð á stigum og frammistöðu. Stöplarit eru mjög þægileg þegar á að bera saman töluleg gildi flokkabreytur (ekki of margar) og það hentar einmitt mjög vel til að bera saman frammistöður Hamiltons og Verstappen. Línurit eru góð til að sýna þróun tölulegra gilda sem hentaði vel fyrir samanburð ökumannanna á tímabilinu 2021, líka til að sýna stigasöfnun þeirra í gegnum árin.
+Við notuðum radar-kort (spider-chart) til að sýna myndrænan samanburð í mörgum (ótengdum) atriðum
+
+Gagnvirkt mælaborð, Shiny:
+
+Í verkefninu var notað Shiny fyrir Python til að útbúa gagnvirka mælaborðið sem er undirstaðan í verkefninu. Shiny hentaði vel því að það er notendavænt og við í hópnum höfðum allir reynslu af python og shiny úr fyrri verkefnum.
+
